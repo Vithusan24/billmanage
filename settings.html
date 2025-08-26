@@ -1,150 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Settings</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .settings-container {
-            padding: 20px;
-        }
-        .settings-section {
-            margin-bottom: 30px;
-        }
-        .settings-section h2 {
-            margin-bottom: 15px;
-        }
-        input[type=text], input[type=number] {
-            padding: 8px;
-            width: 300px;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 15px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - POS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .section {margin:20px 0; padding:16px; border:1px solid var(--border); border-radius:8px; background:#fff;}
+    label {display:block; margin:8px 0 4px;}
+    input {padding:6px; width:250px;}
+  </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>POS</h2>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="products.html">Products</a>
-        <a href="billing.html">Billing</a>
-        <a href="sales.html">Sales</a>
-        <a href="reports.html">Reports</a>
-        <a href="settings.html" class="active">Settings</a>
+  <nav class="sidebar">
+    <h2>POS System</h2>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="billing.html">Billing</a>
+    <a href="sales.html">Sales</a>
+    <a href="reports.html">Reports</a>
+    <a href="settings.html" class="active">Settings</a>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div><strong>Settings</strong></div>
     </div>
-
-    <!-- Main Content -->
-    <div class="main">
-        <div class="topbar">
-            <h1>Settings</h1>
-        </div>
-        <div class="settings-container">
-
-            <!-- Store Info -->
-            <div class="settings-section">
-                <h2>Store Info</h2>
-                <label>Store Name:</label><br>
-                <input type="text" id="storeName" placeholder="Your store name"><br>
-                <label>Address:</label><br>
-                <input type="text" id="storeAddress" placeholder="Store address"><br>
-                <label>Contact:</label><br>
-                <input type="text" id="storeContact" placeholder="Phone or email"><br>
-                <button onclick="saveStoreInfo()">Save Store Info</button>
-            </div>
-
-            <!-- Tax Settings -->
-            <div class="settings-section">
-                <h2>Tax Settings</h2>
-                <label>Tax Rate (%):</label><br>
-                <input type="number" id="taxRate" placeholder="Enter tax rate"><br>
-                <button onclick="saveTaxRate()">Save Tax Rate</button>
-            </div>
-
-            <!-- Backup / Import / Export -->
-            <div class="settings-section">
-                <h2>Data Backup & Import</h2>
-                <button onclick="exportData()">Export Data</button>
-                <input type="file" id="importFile">
-                <button onclick="importData()">Import Data</button>
-                <button onclick="resetDemo()">Reset Demo Data</button>
-            </div>
-        </div>
+    <div class="content">
+      <h1>System Settings</h1>
+      <div class="section">
+        <h3 style="color: blue;">Store Info</h3>
+        <label style="color: blue;">Store Name</label>
+        <input id="storeName" placeholder="My Shop">
+        <label style="color: blue;">Tax Rate (%)</label>
+        <input id="taxRate" type="number" step="0.01">
+        <button onclick="saveSettings()">Save</button>
+      </div>
+      <div class="section">
+        <h3 style="color: blue;">Data Backup</h3>
+        <button onclick="exportData()">Export Backup</button>
+        <input type="file" id="importFile">
+        <button onclick="importData()">Import Backup</button>
+      </div>
+      <div class="section">
+        <h3 style="color: blue;">Factory Reset</h3>
+        <button onclick="resetAll()">Reset All Data</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // Load saved store info and tax
-        document.addEventListener('DOMContentLoaded', () => {
-            const storeInfo = JSON.parse(localStorage.getItem('pos_store')) || {};
-            document.getElementById('storeName').value = storeInfo.name || '';
-            document.getElementById('storeAddress').value = storeInfo.address || '';
-            document.getElementById('storeContact').value = storeInfo.contact || '';
-            document.getElementById('taxRate').value = localStorage.getItem('pos_tax') || '';
-        });
+<script>
+  const KEYS=['pos_products','pos_sales','pos_seq','pos_settings'];
+  const DB={get:(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
 
-        function saveStoreInfo() {
-            const store = {
-                name: document.getElementById('storeName').value,
-                address: document.getElementById('storeAddress').value,
-                contact: document.getElementById('storeContact').value
-            };
-            localStorage.setItem('pos_store', JSON.stringify(store));
-            alert('Store info saved!');
-        }
+  function loadSettings(){
+    const s=DB.get('pos_settings',{name:'My Shop',tax:5});
+    document.getElementById('storeName').value=s.name;
+    document.getElementById('taxRate').value=s.tax;
+  }
 
-        function saveTaxRate() {
-            const tax = document.getElementById('taxRate').value;
-            localStorage.setItem('pos_tax', tax);
-            alert('Tax rate saved!');
-        }
+  function saveSettings(){
+    const name=document.getElementById('storeName').value;
+    const tax=parseFloat(document.getElementById('taxRate').value)||0;
+    DB.set('pos_settings',{name,tax});
+    alert('Saved!');
+  }
 
-        function exportData() {
-            const data = {
-                products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
-                sales: JSON.parse(localStorage.getItem('pos_sales') || '[]'),
-                store: JSON.parse(localStorage.getItem('pos_store') || '{}'),
-                tax: localStorage.getItem('pos_tax') || 0
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'pos_backup.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+  function exportData(){
+    const data={};
+    for(const k of KEYS){data[k]=localStorage.getItem(k);}
+    const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='pos-backup.json';
+    a.click();
+  }
 
-        function importData() {
-            const file = document.getElementById('importFile').files[0];
-            if (!file) return alert('Please select a file');
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = JSON.parse(e.target.result);
-                localStorage.setItem('pos_products', JSON.stringify(data.products || []));
-                localStorage.setItem('pos_sales', JSON.stringify(data.sales || []));
-                localStorage.setItem('pos_store', JSON.stringify(data.store || {}));
-                localStorage.setItem('pos_tax', data.tax || 0);
-                alert('Data imported successfully!');
-                location.reload();
-            };
-            reader.readAsText(file);
-        }
+  function importData(){
+    const f=document.getElementById('importFile').files[0];
+    if(!f) return;
+    const r=new FileReader();
+    r.onload=e=>{
+      const data=JSON.parse(e.target.result);
+      for(const k of KEYS){if(data[k]) localStorage.setItem(k,data[k]);}
+      alert('Imported! Reloading...'); location.reload();
+    };
+    r.readAsText(f);
+  }
 
-        function resetDemo() {
-            if (confirm('Are you sure? This will clear all demo data!')) {
-                localStorage.removeItem('pos_products');
-                localStorage.removeItem('pos_sales');
-                localStorage.removeItem('pos_store');
-                localStorage.removeItem('pos_tax');
-                alert('Demo data cleared!');
-                location.reload();
-            }
-        }
-    </script>
+  function resetAll(){
+    if(!confirm('Are you sure?')) return;
+    for(const k of KEYS) localStorage.removeItem(k);
+    alert('All data cleared'); location.reload();
+  }
+
+  loadSettings();
+</script>
 </body>
 </html>
